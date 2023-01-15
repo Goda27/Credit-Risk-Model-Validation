@@ -1,19 +1,19 @@
-DATA MANIPULATION TASK
+#DATA MANIPULATION TASK
 library(readxl)
-bankdata <- read_excel("C:/Users/godav/Desktop/Darbas/Praktika/SEB/Uzduotis/bank.xlsx") #importuoju excelio failo duomenis į dataframe'ą
+bankdata <- read_excel("C:/Users/godav/Desktop/Darbas/Praktika/SEB/Uzduotis/bank.xlsx") #importuoju excelio failo duomenis į "bankdata" dataframe'ą
 bankdata
-attach(bankdata) #pasiekiu kintamuosius dataframe'e nekviesdama pačio dataframe'o
+attach(bankdata) #pasiekiu kintamuosius "bankdata" dataframe'e nekviesdama pačio dataframe'o
 
-rand_bankdata <- bankdata[sample(nrow(bankdata), size=777), ] #išrenku random sub sample su 777 eilutėm ir visais 17 stulpelių
+rand_bankdata <- bankdata[sample(nrow(bankdata), size=777), ] #išrenku random sub sample su 777 eilutėm ir visais 17 stulpelių bei patalpinu į "rand_bankdata" dataframe'ą
 rand_bankdata
 
 library(dplyr)
-filter(rand_bankdata, housing == "no" & loan == "no") #iš rand_bankdata išfiltruoju eilutes tų banko klientų, kurie neturi būsto ir asmeninių paskolų
-filter(rand_bankdata, month == "mar" | month == "apr" | month == "may" & poutcome == "success") #iš rand_bankdata išfiltruoju eilutes tų banko klientų, su kuriais paskutinį kartą buvo kontaktuota pavasarį ir su kuriais ši kompanija atnešė sėkmingų rezultatų
-filter(bankdata, between(balance, 500, 7000) & marital == "single") #iš bankdata išfiltruoju eilutes tų banko klientų, kurių vidutinis metų balansas yra tarp 500eur ir 7000eur bei kurie nėra susituokę
+filter(rand_bankdata, housing == "no" & loan == "no") #iš "rand_bankdata" išfiltruoju eilutes tų banko klientų, kurie neturi būsto ir asmeninių paskolų
+filter(rand_bankdata, (month == "mar" | month == "apr" | month == "may") & poutcome == "success") #iš "rand_bankdata" išfiltruoju eilutes tų banko klientų, su kuriais paskutinį kartą buvo kontaktuota pavasarį ir su kuriais ši kampanija atnešė sėkmingų rezultatų
+filter(bankdata, between(balance, 500, 7000) & marital == "single") #iš "bankdata" išfiltruoju eilutes tų banko klientų, kurių vidutinis metų balansas yra tarp 500eur ir 7000eur bei kurie nėra susituokę
 
 ch_bankdata = subset(bankdata, select = -c(previous)) #išmečiau nereikalingą kintamąjį "previous" sukurdama naują dataframe'ą "ch_dataframe"
-chrenamed_dataframe <- rename(ch_bankdata, job_role = job, marital_status = marital, default_credit = default) #pervadinau kintamuosius "job", "marital" ir "default" į "job_role", "marital_status" ir "default_credit" bei išsaugojau juos į naują dataframe'ą "chrenamed_dataframe"
+chrenamed_bankdata <- rename(ch_bankdata, job_role = job, marital_status = marital, default_credit = default) #pervadinau kintamuosius "job", "marital" ir "default" į "job_role", "marital_status" ir "default_credit" bei išsaugojau juos į naują dataframe'ą "chrenamed_bankdata"
 
 sapply(bankdata[1], mean, na.rm=TRUE) #apskaičiuoju vidutinį klientų iš "bankdata" dateframe'o amžių
 summary(bankdata[6]) #apskaičiuoju minimalų klientų metinį balansą, 25-tą kvartilį (25% klientų metinių balansų yra žemiau šios ribos), klientų metinių balansų medianą ir vidurkį, 75-tą kvartilį (25% klientų metinių balansų yra aukščiau šios ribos) bei maksimalų klientų metinį balansą
@@ -21,26 +21,27 @@ table(bankdata[9]) #išskiriu komunikacijos su klientais tipų dažnį (kaip da�
 prop.table(table(bankdata[4])) #išskiriu klientų pasiekto išsilavinimo lygio proporcijas (parodydama, kiek procentų visų klientų pasiekė kiekvieną iš išsilavinimo lygmenų)
 
 rand_bankdata <- mutate(rand_bankdata, duration_min = duration/60) #"rand_bankdata" dataframe'e sukuriu naują "duration_min" kintamąjį, kuris nurodo paskutinio kontakto su klientu trukmę minutėmis (o "duration" kintamasis nurodė paskutinio kontakto trukmę sekundėmis)
-???Custom function for new variables???
+bankdata$date <- paste(bankdata$month, bankdata$day) #"bankdata" dataframe'e sukuriu naują "date" kintamąjį, kuriame sujungiu paskutinio kontakto su klientu mėnesį ir dieną
 
 rand_bankdata <- rand_bankdata[order(rand_bankdata[,5], rand_bankdata[,6]), ] #pertvarkiau ir išrūšiavau "rand_bankdata" dataframe'ą pirmiausia pagal banko klientų kredito turėjimą (pirma išrašyti visi, kurie turi kreditą, o tuomet tie, kurie neturi), o tuomet pagal metinį klientų balansą didėjimo tvarka (kadangi tai antrinis išrūšiavimo kintamasis, tai pirmiausia dataframe'e išrašyti visi klientai turintis kreditą pagal metinius balansus didėjimo tvarka, o tuomet visi klientai neturintys kredito vėlgi pagal metinius balansus didėjimo tvarka
 
-DATA VISUALIZATION TASK
+#DATA VISUALIZATION TASK
 GBC <- ggplot(bankdata, aes(x = job, fill = education)) + geom_bar(position = "stack") + theme(axis.text.x = element_text(angle = 90)) + labs(y = "Number of Clients", fill = "Education Level", x = "Types of Jobs", title = "Attained Education Distribution between Types of Jobs") #sukuriu sugrupuotą juostinę diagramą ("grouped bar chart"), kur x ašyje atsispindi klientų darbo tipai, y ašyje - klientų skaičius kiekviename darbo tipe, o spalvotuose juostinės diagramos segmentuose matyti klientų pasiskyrstimas kiekviename darbo tipe pagal įgytą išsilavinimą
 GBC
 
-SP <- ggplot(bankdata, aes(x = age, y = balance)) + geom_point(color="green", size=1.8, alpha=.9) + geom_smooth(color="red", linewidth=1.4) + scale_y_continuous(label = scales::dollar_format(suffix="€",prefix=""), limits = c(-5000, 45000)) + scale_x_continuous(breaks = seq(18, 80, 10), limits=c(18, 80)) + labs(x = "Age", y  = "Average Yearly Balance", title = "Age vs. Yearly Balance", subtitle = "Data collected from the customers from May 2008 to November 2010") #sukuriu sklaidos diagramą ("scatterplot"), kur x ašyje yra pateiktas klientų amžius, o y ašyje - klientų vidutinis metinis balansas. Taškinė diagrama atskleidžia klientų vidutinių metinių balansų pasiskirstymą priklausomai nuo amžiaus. Neparametrinė pritaikymo linija ("nonparametric fit line") atskleidžia santykio pasiskirstymą tarp amžiaus ir vidutinio metinio balanso remdamasi netiesiniu efektu ("non-linear effect"). Svarbu paminėti, jog nereikšmingas skaičius (9) itin tolimų verčių (outliers) buvo neįtrauktas į diagramą siekiant sukurti detalesnį vaizdą bei nuoseklesnį suvokimą.
+SP <- ggplot(bankdata, aes(x = age, y = balance)) + geom_point(color = "green", size = 1.8, alpha = .9) + geom_smooth(color = "red", linewidth = 1.4) + scale_y_continuous(label = scales::dollar_format(suffix = "€",prefix = ""), limits = c(-5000, 45000)) + scale_x_continuous(breaks = seq(18, 80, 10), limits = c(18, 80)) + labs(x = "Age", y  = "Average Yearly Balance", title = "Age vs. Yearly Balance", subtitle = "Data collected from the customers from May 2008 to November 2010") #sukuriu sklaidos diagramą ("scatterplot"), kur x ašyje yra pateiktas klientų amžius, o y ašyje - klientų vidutinis metinis balansas. Taškinė diagrama atskleidžia klientų vidutinių metinių balansų pasiskirstymą priklausomai nuo amžiaus. Neparametrinė pritaikymo linija ("nonparametric fit line") atskleidžia santykio pasiskirstymą tarp amžiaus ir vidutinio metinio balanso remdamasi netiesiniu efektu ("non-linear effect"). Svarbu paminėti, jog nereikšmingas skaičius (9) itin tolimų verčių (outliers) buvo neįtrauktas į diagramą siekiant sukurti detalesnį vaizdą bei nuoseklesnį suvokimą.
 SP
 
-JBP <- ggplot(bankdata, aes(x = factor(poutcome, labels = c("Unknown", "Other", "Failure", "Success")), y = duration, color = poutcome)) + geom_boxplot(color = "black") + geom_jitter(alpha = 0.2) + scale_y_continuous(breaks = seq(0, 2000, 1000), limits=c(0, 2000)) + labs(title = "Outcome of the Marketing Campaign by the Last Contact Duration", x = "Outcome", y = "Contact Duration") + theme_minimal() + theme(legend.position = "none") + coord_flip() #sukuriu sujungtą taškinę histogramą ("combined jitter and boxplot"), kur x ašyje demonstruojama paskutinio kontakto su klientu trukmė, o y ašyje - kontakto rezultatai. Taškinė diagrama atvaizduoja klientų pasiskirstymą pagal paskutinio kontakto trukmę keturiose atskirose skiltyse, atspindinčiose kontakto rezultatus. Histograma ("boxplot") atskleidžia duomenų pasiskirstymą tarp 25-to ir 27-to percentilio bei duomenų medianą kiekvieno rezultato atveju. Svarbu paminėti, jog nereikšmingas skaičius (5) itin tolimų verčių (outliers) buvo neįtrauktas į diagramą siekiant sukurti detalesnį vaizdą bei nuoseklesnį suvokimą.
+JBP <- ggplot(bankdata, aes(x = factor(poutcome, labels = c("Unknown", "Other", "Failure", "Success")), y = duration, color = poutcome)) + geom_boxplot(color = "black") + geom_jitter(alpha = 0.2) + scale_y_continuous(breaks = seq(0, 2000, 1000), limits = c(0, 2000)) + labs(title = "Outcome of the Marketing Campaign by the Last Contact Duration", x = "Outcome", y = "Contact Duration") + theme_minimal() + theme(legend.position = "none") + coord_flip() #sukuriu sujungtą taškinę histogramą ("combined jitter and boxplot"), kur x ašyje demonstruojama paskutinio kontakto su klientu trukmė, o y ašyje - kontakto rezultatai. Taškinė diagrama atvaizduoja klientų pasiskirstymą pagal paskutinio kontakto trukmę keturiose atskirose skiltyse, atspindinčiose kontakto rezultatus. Histograma ("boxplot") atskleidžia duomenų pasiskirstymą tarp 25-to ir 27-to percentilio bei duomenų medianą kiekvieno rezultato atveju. Svarbu paminėti, jog nereikšmingas skaičius (5) itin tolimų verčių (outliers) buvo neįtrauktas į diagramą siekiant sukurti detalesnį vaizdą bei nuoseklesnį suvokimą.
 JBP
 
-bankdata$loan <- factor(bankdata$loan, levels = c("yes", "no"), labels = c("Obtains a Personal Loan", "Does Not Obtain a Personal Loan")) #persivadinu galimus atsakymus į klausimą, ar klientas turi asmeninę paskolą, kad kuriamos histogramos būtų draugiškesnės vartotojui
+bankdata$loan <- factor(bankdata$loan, levels = c("yes", "no"), labels = c("Obtains a Personal Loan", "Does Not Obtain a Personal Loan")) #persivadinu galimus atsakymus į klausimą, ar klientas turi asmeninę paskolą, kad kuriamos histogramos būtų draugiškesnės vartotojui ir lengviau suprantamos
 FP <- ggplot(bankdata, aes(x = balance)) + geom_histogram(fill = "pink", color = "violet") + facet_wrap(~loan) + labs(title = "Average Yearly Balance Histograms by Obtaining a Personal Loan", x = "Average Yearly Balance", y = "Number of Clients") #sukuriu sugrupuotas histogramas, kuriose atsispindi klientų pasiskirstymas pagal vidutinį metinį balansą tarp turinčių asmeninę paskolą ir neturinčių asmeninės paskolos
 FP
 
-MODELLING TASK
+#MODELLING TASK
 bankdata$y <- factor(bankdata$y, levels = c("no", "yes"), labels = c("0", "1")) #pasikeičiu išvesties kintamojo y reikšmes į 0, kai atsakymas yra "ne", ir į 1, kai atsakymas yra "taip", kad galėčiau naudoti "binomial" šeimą logistinei regresijai
 bankdata$contact <- factor(bankdata$contact) #pasikeičiu kintamąjį "contact" į faktorių indikuodama, kad naudosiu jį kaip kategorinį kintamąjį
 banklogit <- glm(y ~ contact + duration + campaign, data = bankdata, family = "binomial") #atlieku logistinę regresiją išvesties kintamajam y, atsakančiam į klausimą, ar klientas pasirašė terminuotąjį indėlį. Naudojami 3 prognozuojamieji kintamieji yra "contact" (kategorinis kintamasis - "categorical variable"), "duration" (nuolatinis kintamasis - "continuous variable") ir "campaign" (nuolatinis kintamasis - "continuous variable")
-summary(banklogit)
+summary(banklogit) #peržvelgiu logistinės regresijos rezultatus, nagrinėdama juos per įvairius faktorius. Pvz.: galima matyti, jog kiekvienam vienetiniam pokyčiui paskutinio kontakto trukmei ("duration") logistinės tikimybės ("log odds"), kad klientas pasirašys terminuotąjį indėlį (išvesties kintamasis y) pakyla 0.0037, taip pat matome, jog komunikuojant su klientu telefonu, o ne pasitelkus "cellular communication" pakeičia logistines tikimybes, kad klientas pasirašys terminuotąjį indėlį per 0.1296 (padidina), ir t.t.
+#tolimesnių užduoties dalių nespėjau atlikti dėl pasiruošimo laukiantiems egzaminams, tačiau būčiau naudojusi Wald testą kiekvieno koeficiento modelyje statistiniam reikšmingumui apskaičiuoti taip pratęsdama ligistinės regresijos analizavimą
